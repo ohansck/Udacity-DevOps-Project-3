@@ -70,3 +70,6 @@ node_modules
 dist
 
 instructions
+CODEOWNERS
+.theia
+.github
