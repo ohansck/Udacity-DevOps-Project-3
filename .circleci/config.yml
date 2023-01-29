@@ -11,15 +11,6 @@ commands:
           mentions: "@ohansckofficial"
           template: basic_fail_1
 
-  alert_job_success:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - slack/notify:
-          event: pass
-          mentions: "@ohansckofficial"
-          template: success_tagged_deployment_1
-
 jobs:
   build-frontend:
     docker:
@@ -166,7 +157,3 @@ workflows:
       - scan-backend:
           requires:
             - test-backend
-      - alert_job_success:
-          requires:
-            - scan-backend
-            - scan-frontend
