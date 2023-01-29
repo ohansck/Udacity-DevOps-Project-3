@@ -12,6 +12,8 @@ commands:
           template: basic_fail_1
 
   alert_job_success:
+    docker:
+      - image: cimg/base:stable
     steps:
       - slack/notify:
           event: pass
