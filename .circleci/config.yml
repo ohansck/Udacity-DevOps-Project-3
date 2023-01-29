@@ -207,7 +207,7 @@ workflows:
                         "type": "section",
                         "text": {
                           "type": "mrkdwn",
-                          "text": "✅ *Success* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                          "text": "✅ *Success.* CICD #${CIRCLE_BUILD_NUM} for repo `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}` branch"
                         }
                       },
                       {
