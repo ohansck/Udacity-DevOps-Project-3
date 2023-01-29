@@ -74,3 +74,4 @@ CODEOWNERS
 .theia
 .github
 .git.sh
+config-demo.yml
