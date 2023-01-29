@@ -1,5 +1,23 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.12.1
+
+commands:
+  alert_job_fail:
+    steps:
+      - slack/notify:
+          event: fail
+          mentions: "@ohansckofficial"
+          template: basic_fail_1
+
+  alert_job_success:
+    steps:
+      - slack/notify:
+          event: pass
+          mentions: "@ohansckofficial"
+          template: success_tagged_deployment_1
+
 jobs:
   build-frontend:
     docker:
@@ -22,6 +40,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-deps-{{ checksum "frontend/package-lock.json" }}
+      - alert_job_fail
 
   build-backend:
     docker:
@@ -44,6 +63,8 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-deps-{{ checksum "backend/package-lock.json" }}
+      - alert_job_fail
+
   test-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -62,6 +83,8 @@ jobs:
           command: |
             cd frontend
             npm run test
+      - alert_job_fail
+
   test-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -80,6 +103,8 @@ jobs:
           command: |
             cd backend
             npm run test
+      - alert_job_fail
+
   scan-frontend:
     docker:
       - image: cimg/node:13.8.0
@@ -100,6 +125,8 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
+      - alert_job_fail
+
   scan-backend:
     docker:
       - image: cimg/node:13.8.0
@@ -120,6 +147,7 @@ jobs:
             npm audit fix --force --audit-level=critical
             npm audit fix --force --audit-level=critical
             npm audit --audit-level=critical
+      - alert_job_fail
 
 workflows:
   default:
@@ -136,3 +164,7 @@ workflows:
       - scan-backend:
           requires:
             - test-backend
+      - alert_job_success:
+          requires:
+            - scan-backend
+            - scan-frontend
