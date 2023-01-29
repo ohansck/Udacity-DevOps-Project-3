@@ -157,3 +157,13 @@ workflows:
       - scan-backend:
           requires:
             - test-backend
+      - notify:
+          requires:
+            - scan-backend
+          name: Notify Slack
+          orb: slack/notify
+          parameters:
+            message: |
+              Build has completed successfully!
+              Job: ${CIRCLE_JOB}
+              Build URL: ${CIRCLE_BUILD_URL}
