@@ -73,5 +73,6 @@ instructions
 CODEOWNERS
 .theia
 .github
-.git.sh
+git.sh
 config-demo.yml
+cdfr.sh
