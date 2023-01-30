@@ -333,6 +333,82 @@ jobs:
       - revert-migrations
       - alert_job_fail
 
+  deploy-frontend:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - install_awscli
+      - install_nodejs
+      - restore_cache:
+          keys:
+            - frontend-deps-{{ checksum "frontend/package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: |
+            cd frontend
+            npm install
+      - run:
+          name: Get backend URL
+          command: |
+            BACKEND_PUBLIC_IP=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
+
+            echo "API_URL=http://${BACKEND_PUBLIC_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            npm run build
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - destroy-environment
+      - revert-migrations
+
+  deploy-backend:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - install_ansible
+      - install_awscli
+      - install_nodejs
+      - restore_cache:
+          keys:
+            - backend-deps-{{ checksum "backend/package-lock.json" }}
+      - add_ssh_keys:
+          fingerprints: ["65:a1:15:b2:79:49:84:a2:88:e6:ea:95:ef:0e:09:82"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            cd backend
+            npm install
+      - run:
+          name: Package Backend
+          command: |
+            cd backend
+            npm run build
+            tar -czf artifact.tar.gz dist/* package*
+
+            cd ..
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
+      - run:
+          name: Deploy backend
+          command: |
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
+
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - destroy-environment
+      - revert-migrations
+
   last-job:
     docker:
       - image: cimg/node:13.8.0
@@ -363,9 +439,13 @@ workflows:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
       - last-job:
           context: [slack]
-          requires: [run-migrations]
+          requires: [deploy-frontend]
           post-steps:
             - slack/notify:
                 custom: |
@@ -376,7 +456,7 @@ workflows:
                         "type": "section",
                         "text": {
                           "type": "mrkdwn",
-                          "text": "✅ *Success.* CICD #${CIRCLE_BUILD_NUM} for repo `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}` branch"
+                          "text": "✅ *Workflow Success.* CICD #${CIRCLE_BUILD_NUM} for repo `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}` branch"
                         }
                       },
                       {
