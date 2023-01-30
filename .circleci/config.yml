@@ -447,7 +447,7 @@ workflows:
           requires: [run-migrations]
       - last-job:
           context: [slack]
-          requires: [deploy-frontend]
+          requires: [deploy-frontend, deploy-backend]
           post-steps:
             - slack/notify:
                 custom: |
