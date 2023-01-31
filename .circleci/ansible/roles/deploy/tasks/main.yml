@@ -12,12 +12,6 @@
 - name: "Installing Node Dependencies"
   shell: |
     cd ~/backend-app
-    mkdir mudir
-    ls -a
-
-- name: "Installing Node Dependencies"
-  shell: |
-    cd ~/backend-app
     npm i
 
 - name: "Executing Node app with PM2"
