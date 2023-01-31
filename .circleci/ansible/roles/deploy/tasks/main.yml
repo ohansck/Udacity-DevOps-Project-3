@@ -12,7 +12,8 @@
 - name: "Installing Node Dependencies"
   shell: |
     cd ~/backend-app
-    ls
+    mkdir mudir
+    ls -a
 
 - name: "Installing Node Dependencies"
   shell: |
