@@ -351,7 +351,6 @@ jobs:
           name: Get backend URL - Elastic IP address
           command: |
             BACKEND_PUBLIC_IP=$(aws ec2 describe-addresses \
-              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Addresses[*].PublicIp' \
               --output text)
 
